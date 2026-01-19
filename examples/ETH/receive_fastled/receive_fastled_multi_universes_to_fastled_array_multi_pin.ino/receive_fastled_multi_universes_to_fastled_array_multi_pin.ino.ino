@@ -37,23 +37,23 @@ const uint8_t PIN_LED_DATA_3 = 4;
 
 
 // number of LEDs in each universe of pin X
-#define NUM_LEDS_PIN-1_U-0 NUM_LEDS_UNIVERSE
-#define NUM_LEDS_PIN-1_U-1 NUM_LEDS_UNIVERSE
-#define NUM_LEDS_PIN-1_U-2 NUM_LEDS_VOGEL - 2 * NUM_LEDS_UNIVERSE
+#define NUM_LEDS_PIN1_U0 NUM_LEDS_UNIVERSE
+#define NUM_LEDS_PIN1_U1 NUM_LEDS_UNIVERSE
+#define NUM_LEDS_PIN1_U2 NUM_LEDS_VOGEL - 2 * NUM_LEDS_UNIVERSE
 
-#define NUM_LEDS_PIN-2_U-3 NUM_LEDS_UNIVERSE
-#define NUM_LEDS_PIN-2_U-4 NUM_LEDS_JAZZ - NUM_LEDS_UNIVERSE
+#define NUM_LEDS_PIN2_U3 NUM_LEDS_UNIVERSE
+#define NUM_LEDS_PIN2_U4 NUM_LEDS_JAZZ - NUM_LEDS_UNIVERSE
 
-#define NUM_LEDS_PIN-3_U-5 NUM_LEDS_MONTEZ
+#define NUM_LEDS_PIN3_U5 NUM_LEDS_MONTEZ
 
 
 // fastLED start indices for each universe
 const uint16_t start0 = 0;
-const uint16_t start1 = NUM_LEDS_PIN-1_U-0;
-const uint16_t start2 = start1 + NUM_LEDS_PIN-1_U-1;
-const uint16_t start3 = start2 + NUM_LEDS_PIN-1_U-2;
-const uint16_t start4 = start3 + NUM_LEDS_PIN-2_U-3;
-const uint16_t start5 = start4 + NUM_LEDS_PIN-2_U-4;
+const uint16_t start1 = NUM_LEDS_PIN1_U0;
+const uint16_t start2 = start1 + NUM_LEDS_PIN1_U1;
+const uint16_t start3 = start2 + NUM_LEDS_PIN1_U2;
+const uint16_t start4 = start3 + NUM_LEDS_PIN2_U3;
+const uint16_t start5 = start4 + NUM_LEDS_PIN2_U4;
 
 
 
@@ -79,13 +79,13 @@ void setup() {
 
     // if Artnet packet comes to this universe, forward them to fastled directly
     // only for the first universe possible
-    artnet.forwardArtDmxDataToFastLED      (startuniverse,     leds, NUM_LEDS_PIN-1_U-0); // can only digest up to 512 channels or 170 LEDs so NUM_LEDS_u0 can only be 170 at max
+    artnet.forwardArtDmxDataToFastLED      (startuniverse,     leds, NUM_LEDS_PIN1_U0); // can only digest up to 512 channels or 170 LEDs so NUM_LEDS_u0 can only be 170 at max
     // artnet.forwardArtDmxDataToFastLEDoffset(startuniverse,     leds_u_0_1, 0,           NUM_LEDS_u0);
-    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 1, leds, start1, NUM_LEDS_PIN-1_U-1); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
-    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 2, leds, start2, NUM_LEDS_PIN-1_U-2); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
-    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 3, leds, start3, NUM_LEDS_PIN-2_U-3); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
-    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 4, leds, start4, NUM_LEDS_PIN-2_U-4); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
-    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 5, leds, start5, NUM_LEDS_PIN-3_U-5); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 1, leds, start1, NUM_LEDS_PIN1_U1); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 2, leds, start2, NUM_LEDS_PIN1_U2); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 3, leds, start3, NUM_LEDS_PIN2_U3); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 4, leds, start4, NUM_LEDS_PIN2_U4); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 5, leds, start5, NUM_LEDS_PIN3_U5); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
 
 
     // this can be achieved manually as follows
