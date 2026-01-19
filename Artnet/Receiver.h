@@ -277,10 +277,9 @@ public:
             }
         });
     }
-	void forwardArtDmxDataToFastLEDoffset(uint16_t universe, CRGB* leds, uint16_t start, uint16_t end)
+	void forwardArtDmxDataToFastLEDoffset(uint16_t universe, CRGB* leds, uint16_t start, uint16_t num)
     {
-        this->subscribeArtDmxUniverse(universe, [this, leds, start, end](const uint8_t* data, const uint16_t size, const ArtDmxMetadata &, const RemoteInfo &) {
-            size_t num = end - start;
+        this->subscribeArtDmxUniverse(universe, [this, leds, start, num](const uint8_t* data, const uint16_t size, const ArtDmxMetadata &, const RemoteInfo &) {
 			size_t n;
             if (num <= size / 3) {
                 // OK: requested number of LEDs is less than received data size
@@ -293,9 +292,9 @@ public:
                 this->logger->print(F("      received : "));
                 this->logger->println(size);
             }
-            for (size_t pixel = start; pixel < n; ++pixel) {
-                size_t idx = (pixel - start) * 3; // index into FastLED array needs to be offset by start because FastLED array can be larger than size of one universe
-                leds[pixel].r = data[idx + 0];
+            for (size_t pixel = start; pixel < start + n; ++pixel) {
+                size_t idx = (pixel - start) * 3; // index "pixel" into FastLED array needs to be offset by "start" because FastLED array can be larger than size of one universe
+                leds[pixel].r = data[idx + 0];    // however the size of "data" corresponds always to an ArtNet packet of 512 elements 
                 leds[pixel].g = data[idx + 1];
                 leds[pixel].b = data[idx + 2];
             }
