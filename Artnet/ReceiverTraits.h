@@ -71,6 +71,7 @@ struct IReceiver_
 #ifdef FASTLED_VERSION
     virtual void forwardArtDmxDataToFastLED(uint8_t net, uint8_t subnet, uint8_t universe, CRGB* leds, uint16_t num) = 0;
     virtual void forwardArtDmxDataToFastLED(uint16_t universe, CRGB* leds, uint16_t num) = 0;
+	virtual void forwardArtDmxDataToFastLEDoffset(uint16_t universe, CRGB* leds, uint16_t start, uint16_t end) = 0;
 #endif
 
     // https://art-net.org.uk/how-it-works/discovery-packets/artpollreply/

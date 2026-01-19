@@ -270,7 +270,31 @@ public:
                 this->logger->println(size);
             }
             for (size_t pixel = 0; pixel < n; ++pixel) {
-                size_t idx = pixel * 3;
+                size_t idx = pixel * 3; // index into FastLED array needs to be offset by start because FastLED array can be larger than size of one universe
+                leds[pixel].r = data[idx + 0];
+                leds[pixel].g = data[idx + 1];
+                leds[pixel].b = data[idx + 2];
+            }
+        });
+    }
+	void forwardArtDmxDataToFastLEDoffset(uint16_t universe, CRGB* leds, uint16_t start, uint16_t end)
+    {
+        this->subscribeArtDmxUniverse(universe, [this, leds, start, end](const uint8_t* data, const uint16_t size, const ArtDmxMetadata &, const RemoteInfo &) {
+            size_t num = end - start;
+			size_t n;
+            if (num <= size / 3) {
+                // OK: requested number of LEDs is less than received data size
+                n = num;
+            } else {
+                n = size / 3;
+                this->logger->println(F("WARN: ArtNet packet size is less than requested LED numbers to forward"));
+                this->logger->print(F("      requested: "));
+                this->logger->print(num * 3);
+                this->logger->print(F("      received : "));
+                this->logger->println(size);
+            }
+            for (size_t pixel = start; pixel < n; ++pixel) {
+                size_t idx = (pixel - start) * 3; // index into FastLED array needs to be offset by start because FastLED array can be larger than size of one universe
                 leds[pixel].r = data[idx + 0];
                 leds[pixel].g = data[idx + 1];
                 leds[pixel].b = data[idx + 2];
