@@ -1,6 +1,7 @@
 #include <FastLED.h>  // include FastLED *before* Artnet
 
 #include <ArtnetETH.h> // used with ESP32 POE from Olimex
+// #include <ArtnetNativeEther.h>  // only for Teensy 4.1
 
 // Ethernet
 const IPAddress ip(10, 10, 10, 100);

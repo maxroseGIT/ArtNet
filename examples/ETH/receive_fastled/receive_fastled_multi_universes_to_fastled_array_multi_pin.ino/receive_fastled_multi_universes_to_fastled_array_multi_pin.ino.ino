@@ -1,6 +1,7 @@
 #include <FastLED.h>  // include FastLED *before* Artnet
 
 #include <ArtnetETH.h> // used with ESP32 POE from Olimex
+// #include <ArtnetNativeEther.h>  // only for Teensy 4.1
 
 // Ethernet
 const IPAddress ip(10, 10, 10, 100);
@@ -8,7 +9,11 @@ const IPAddress gateway(10, 10, 10, 10);
 const IPAddress subnet(255, 255, 255, 0);
 
 // total number of LEDs is SUM of LEDs from each pin
-#define NUM_TOTAL_LEDS 300
+#define NUM_LEDS_VOGEL  410
+#define NUM_LEDS_JAZZ   183
+#define NUM_LEDS_MONTEZ 145
+
+#define NUM_TOTAL_LEDS NUM_LEDS_VOGEL + NUM_LEDS_JAZZ + NUM_LEDS_MONTEZ
 
 // start universe
 uint8_t startuniverse = 0;
@@ -20,18 +25,37 @@ ArtnetETHReceiver artnet;
 // https://github.com/fastled/fastled/wiki/multiple-controller-examples#one-array-many-strips
 
 // define LED pins
-const uint8_t PIN_LED_DATA = 4;
+const uint8_t PIN_LED_DATA_1 = 16;
+const uint8_t PIN_LED_DATA_2 = 5;
+const uint8_t PIN_LED_DATA_3 = 4;
 
-#define COLOR GRB
+#define COLOR_ORDER GRB
 #define LED_TYPE WS2812
 
 #define NUM_LEDS_UNIVERSE 170
 
 
 
-// number of LEDs in each universe
-#define NUM_LEDS_u0 NUM_LEDS_UNIVERSE // L & A
-#define NUM_LEDS_u1 NUM_TOTAL_LEDS - NUM_LEDS_UNIVERSE               // B und alle restlichen LEDs
+// number of LEDs in each universe of pin X
+#define NUM_LEDS_PIN-1_U-0 NUM_LEDS_UNIVERSE
+#define NUM_LEDS_PIN-1_U-1 NUM_LEDS_UNIVERSE
+#define NUM_LEDS_PIN-1_U-2 NUM_LEDS_VOGEL - 2 * NUM_LEDS_UNIVERSE
+
+#define NUM_LEDS_PIN-2_U-3 NUM_LEDS_UNIVERSE
+#define NUM_LEDS_PIN-2_U-4 NUM_LEDS_JAZZ - NUM_LEDS_UNIVERSE
+
+#define NUM_LEDS_PIN-3_U-5 NUM_LEDS_MONTEZ
+
+
+// fastLED start indices for each universe
+const uint16_t start0 = 0;
+const uint16_t start1 = NUM_LEDS_PIN-1_U-0;
+const uint16_t start2 = start1 + NUM_LEDS_PIN-1_U-1;
+const uint16_t start3 = start2 + NUM_LEDS_PIN-1_U-2;
+const uint16_t start4 = start3 + NUM_LEDS_PIN-2_U-3;
+const uint16_t start5 = start4 + NUM_LEDS_PIN-2_U-4;
+
+
 
 // create LED array for FastLED
 CRGB leds[NUM_TOTAL_LEDS]; // B
@@ -41,20 +65,27 @@ void setup() {
     delay(2000);
 
     // create LED controller
-    FastLED.addLeds<LED_TYPE, PIN_LED_DATA,  COLOR>(leds,NUM_TOTAL_LEDS);
+    FastLED.addLeds<LED_TYPE, PIN_LED_DATA_1,  COLOR_ORDER>(leds, NUM_LEDS_VOGEL);
+    FastLED.addLeds<LED_TYPE, PIN_LED_DATA_2,  COLOR_ORDER>(leds, NUM_LEDS_JAZZ);
+    FastLED.addLeds<LED_TYPE, PIN_LED_DATA_3,  COLOR_ORDER>(leds, NUM_LEDS_MONTEZ);
 
     // start ethernet interface
     ETH.begin();
     ETH.config(ip, gateway, subnet);
     artnet.begin();
 
+    // stats call to show which universes are beeing received
+    // artnet.subscribeArtDmx(onArtDmx);
+
     // if Artnet packet comes to this universe, forward them to fastled directly
     // only for the first universe possible
-    artnet.forwardArtDmxDataToFastLED      (startuniverse,     leds, NUM_LEDS_u0); // can only digest up to 512 channels or 170 LEDs so NUM_LEDS_u0 can only be 170 at max
+    artnet.forwardArtDmxDataToFastLED      (startuniverse,     leds, NUM_LEDS_PIN-1_U-0); // can only digest up to 512 channels or 170 LEDs so NUM_LEDS_u0 can only be 170 at max
     // artnet.forwardArtDmxDataToFastLEDoffset(startuniverse,     leds_u_0_1, 0,           NUM_LEDS_u0);
-    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 1, leds, NUM_LEDS_u0, NUM_LEDS_u1); // works only when number of LEDs fit in one universe i.e. NUM_TOTAL_LEDS-NUM_LEDS_u0 <= 170
-    
-    artnet.subscribeArtDmx(onArtDmx);
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 1, leds, start1, NUM_LEDS_PIN-1_U-1); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 2, leds, start2, NUM_LEDS_PIN-1_U-2); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 3, leds, start3, NUM_LEDS_PIN-2_U-3); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 4, leds, start4, NUM_LEDS_PIN-2_U-4); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
+    artnet.forwardArtDmxDataToFastLEDoffset(startuniverse + 5, leds, start5, NUM_LEDS_PIN-3_U-5); // works only when number of LEDs fit in one universe i.e. NUM_LEDS_PIN <= 170
 
 
     // this can be achieved manually as follows
@@ -76,8 +107,12 @@ void setup() {
   Serial.println(ETH.localIP());
   Serial.print(NUM_TOTAL_LEDS);
   Serial.println(" LEDs");
-  Serial.print("Receiver for multiple Universes on µC pin ");
-  Serial.println(PIN_LED_DATA);
+  Serial.print("Receiver for multiple Universes on multiple µC pins ");
+  Serial.println(PIN_LED_DATA_1);
+  Serial.print(", ");
+  Serial.println(PIN_LED_DATA_2);
+  Serial.print(", ");
+  Serial.println(PIN_LED_DATA_3);
 }
 
 void loop() {
